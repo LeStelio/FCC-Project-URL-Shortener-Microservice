@@ -45,13 +45,13 @@ app.post('/api/shorturl', (req, res) => {
   let longUrl = req.body.url;
 
   if (!isValidUrl(longUrl)) {
-    return res.status(400).json({ error: 'invalid url' });
+    return res.json({ error: 'invalid url' });
   }
   
   let host = new URL(longUrl).host;
   dns.lookup(host, (err) => {
     if (err) {
-      return res.status(400).json({ error: 'invalid url - host not found' });
+      return res.json({ error: 'invalid url' });
     }
 
     let shortId = shortid.generate();
