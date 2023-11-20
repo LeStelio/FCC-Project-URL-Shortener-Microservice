@@ -18,13 +18,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 
-app.get('/', function (req, res) {
-    res.sendFile(process.cwd() + '/views/index.html');
+app.get('/', function(req, res) {
+  res.sendFile(process.cwd() + '/views/index.html');
 });
 
 // Your first API endpoint
-app.get('/api/hello', function (req, res) {
-    res.json({ greeting: 'hello API' });
+app.get('/api/hello', function(req, res) {
+  res.json({ greeting: 'hello API' });
 });
 
 // My code /////////////////////////////////////////////////////////////////
@@ -33,48 +33,48 @@ let urlDatabase = {};
 
 // URL verification
 function isValidUrl(url) {
-    try {
-        new URL(url);
-        return true;
-    } catch (err) {
-        return false;
-    }
+  try {
+    new URL(url);
+    return true;
+  } catch (err) {
+    return false;
+  }
 }
 
-app.post("/api/shorturl", (req, res) => {
-    let longUrl = req.body.url;
+app.post('/api/shorturl', (req, res) => {
+  let longUrl = req.body.url;
 
-    if (!isValidUrl(longUrl)) {
-        return res.status(400).json({ error: "Invalid URL" });
+  if (!isValidUrl(longUrl)) {
+    return res.status(400).json({ error: 'invalid url' });
+  }
+  
+  let host = new URL(longUrl).host;
+  dns.lookup(host, (err) => {
+    if (err) {
+      return res.status(400).json({ error: 'invalid url - host not found' });
     }
 
-    let host = new URL(longUrl).host;
-    dns.lookup(host, (err) => {
-        if (err) {
-            return res.status(400).json({ error: "Invalid URL - Host not found" });
-        }
+    let shortId = shortid.generate();
+    urlDatabase[shortId] = longUrl;
 
-        let shortId = shortid.generate();
-        urlDatabase[shortId] = longUrl;
-
-        res.json({ longUrl: longUrl, shortUrl: shortId });
-    });
+    res.json({ original_url: longUrl, short_url: shortId });
+  });
 });
 
-app.get("/api/shorturl/:shortUrl", (req, res) => {
-    let short = req.params.shortUrl;
+app.get('/api/shorturl/:shortUrl', (req, res) => {
+  let short = req.params.shortUrl;
 
-    let url = urlDatabase[short];
-
-    if (url) {
-        res.redirect(url);
-    } else {
-        res.status(404).json({ error: "URL not found" });
-    }
+  let url = urlDatabase[short];
+  
+  if (url) {
+    res.redirect(url);
+  } else {
+    res.status(404).json({ error: 'url not found' });
+  }
 })
 
 ////////////////////////////////////////////////////////////////////////////
 
-app.listen(port, function () {
-    console.log(`Listening on port ${port}`);
+app.listen(port, function() {
+  console.log(`Listening on port ${port}`);
 });
